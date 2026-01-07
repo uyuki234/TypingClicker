@@ -17,6 +17,8 @@ class Config:
     PANEL_BG = (34, 34, 46)
     PANEL_RECT = (58, 92, 130)
     PANEL_RECT_BORDER = (120, 160, 200)
+    PANEL_BTN = (80, 140, 200)
+    PANEL_BTN_BORDER = (180, 210, 240)
 
 
 class Button:
@@ -62,9 +64,13 @@ class Game:
         
         # フォント初期化
         base_size = int(min(self.left_width, self.config.HEIGHT) * 0.12)
-        label_size = int(base_size * 0.4)
+        label_size = int(base_size * 0.6)  # 左側ラベル（Typing Power）用
+        right_label_size = int(base_size * 0.8)  # 右側メインラベル用（少し控えめ）
+        right_sublabel_size = int(base_size * 0.5)  # 右側サブラベル用
         self.counter_font = pygame.font.SysFont(None, base_size)
         self.label_font = pygame.font.SysFont(None, label_size)
+        self.right_label_font = pygame.font.SysFont(None, right_label_size)
+        self.right_sublabel_font = pygame.font.SysFont(None, right_sublabel_size)
         
         # ボタン初期化
         self.button = self._init_button()
@@ -193,6 +199,14 @@ class Game:
         image_padding = 16
         text_padding = 16
         labels = ["Typing Skill", "Auto Typing", "CPU"]
+        sublabels = ["+ n Per Click", "+ n Per Second", "× n All"]
+        level_labels = ["Level n", "Level n", "Level n"]
+
+        # ボタンサイズ（各枠の中で下部に配置）
+        button_width = int(rect_width * 0.55)
+        button_height = int(rect_height * 0.28)
+        button_padding_x = 16
+        button_padding_y = 12
 
         # 画像の最大幅を使ってラベルの基準X座標を決定（全行共通）
         label_base_left = (
@@ -234,13 +248,53 @@ class Game:
             self.screen.blit(img, img_rect)
 
             # ラベルを画像の右隣・上部に配置（枠内に収まるよう調整）
-            label_surface = self.label_font.render(labels[i], True, self.config.TEXT_COLOR)
+            label_surface = self.right_label_font.render(labels[i], True, self.config.TEXT_COLOR)
             label_rect = label_surface.get_rect()
             desired_left = label_base_left
             max_left = rect.right - text_padding - label_rect.width
             label_rect.left = min(desired_left, max_left)
             label_rect.top = rect.top + text_padding
             self.screen.blit(label_surface, label_rect)
+
+            # サブラベル（効果概要）をラベルの下に表示
+            sub_surface = self.right_sublabel_font.render(sublabels[i], True, self.config.TEXT_COLOR)
+            sub_rect = sub_surface.get_rect()
+            sub_rect.left = label_rect.left
+            sub_rect.top = label_rect.bottom + 6
+            self.screen.blit(sub_surface, sub_rect)
+
+            # 下部ボタンとその上のレベル表示（デザインのみ）
+            # ボタンをラベル左位置に揃え、右余白を確保
+            btn_left = label_base_left
+            btn_top = rect.bottom - button_padding_y - button_height
+            # 右端は既存パディングを尊重し、必要に応じて幅を調整
+            btn_width = min(button_width, rect.right - button_padding_x - btn_left)
+            btn_rect = pygame.Rect(
+                btn_left,
+                btn_top,
+                btn_width,
+                button_height,
+            )
+            pygame.draw.rect(
+                self.screen,
+                self.config.PANEL_BTN,
+                btn_rect,
+                border_radius=10,
+            )
+            pygame.draw.rect(
+                self.screen,
+                self.config.PANEL_BTN_BORDER,
+                btn_rect,
+                width=2,
+                border_radius=10,
+            )
+
+            # ボタン上のラベル（中央揃え）
+            level_surface = self.label_font.render(level_labels[i], True, self.config.TEXT_COLOR)
+            level_rect = level_surface.get_rect()
+            level_rect.centerx = btn_rect.centerx
+            level_rect.bottom = btn_rect.top - 4
+            self.screen.blit(level_surface, level_rect)
     
     def run(self):
         """メインループ"""
