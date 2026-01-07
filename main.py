@@ -2,6 +2,7 @@
 import pygame
 import sys
 import os
+import math
 
 from counter import Counter
 
@@ -71,6 +72,11 @@ class Game:
         self.label_font = pygame.font.SysFont(None, label_size)
         self.right_label_font = pygame.font.SysFont(None, right_label_size)
         self.right_sublabel_font = pygame.font.SysFont(None, right_sublabel_size)
+
+        # レベル（未購入状態。今回はUIのみで増減は未実装）
+        self.practice_level = 0
+        self.auto_level = 0
+        self.multiplier_level = 0
         
         # ボタン初期化
         self.button = self._init_button()
@@ -201,6 +207,7 @@ class Game:
         labels = ["Typing Skill", "Auto Typing", "CPU"]
         sublabels = ["+ n Per Click", "+ n Per Second", "× n All"]
         level_labels = ["Level n", "Level n", "Level n"]
+        costs = self._calc_costs()
 
         # ボタンサイズ（各枠の中で下部に配置）
         button_width = int(rect_width * 0.55)
@@ -295,6 +302,19 @@ class Game:
             level_rect.centerx = btn_rect.centerx
             level_rect.bottom = btn_rect.top - 4
             self.screen.blit(level_surface, level_rect)
+
+            # ボタン中央にコスト表示（UIのみ）
+            cost_text = f"Cost: {costs[i]:,}"
+            cost_surface = self.right_sublabel_font.render(cost_text, True, self.config.TEXT_COLOR)
+            cost_rect = cost_surface.get_rect(center=btn_rect.center)
+            self.screen.blit(cost_surface, cost_rect)
+
+    def _calc_costs(self):
+        """UI表示用のコスト計算（購入ロジックなし）"""
+        practice_cost = math.ceil(10 * (1.35 ** self.practice_level))
+        auto_cost = math.ceil(50 * (1.60 ** self.auto_level))
+        multiplier_cost = math.ceil(500 * (3.00 ** self.multiplier_level))
+        return [practice_cost, auto_cost, multiplier_cost]
     
     def run(self):
         """メインループ"""
