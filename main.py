@@ -78,6 +78,9 @@ class Game:
             offset_y=0,
             label_font=self.label_font,
         )
+
+        # 右パネル用の画像を事前読み込み
+        self.right_images, self.right_image_max_width = self._load_right_images()
         
         self.running = True
     
@@ -96,6 +99,41 @@ class Game:
         center = pygame.Vector2(self.left_width // 2, self.config.HEIGHT * 0.55)
         
         return Button(center, button_image)
+
+    def _scale_image_keep_aspect(self, image, max_width, max_height):
+        """アスペクト比を保ったまま、指定サイズに収まるようスケーリング"""
+        width, height = image.get_size()
+        scale = min(max_width / width, max_height / height, 1)  # 拡大はしない
+        new_size = (int(width * scale), int(height * scale))
+        return pygame.transform.scale(image, new_size)
+
+    def _load_right_images(self):
+        """右パネルで使う画像を読み込み＆スケーリング。最大幅も返す"""
+        asset_dir = os.path.join(os.path.dirname(__file__), "assets")
+        filenames = [
+            "keyboard_typing.png",
+            "ai_computer_sousa_robot.png",
+            "computer_cpu.png",
+        ]
+
+        margin = 24
+        available_height = self.config.HEIGHT - margin * 4
+        rect_height = available_height / 3
+
+        # 画像は右パネルの幅の約35%、高さは矩形高さの80%以内で比率維持
+        max_width = int(self.right_width * 0.35)
+        max_height = int(rect_height * 0.8)
+
+        images = []
+        max_loaded_width = 0
+        for name in filenames:
+            path = os.path.join(asset_dir, name)
+            img = pygame.image.load(path)
+            scaled = self._scale_image_keep_aspect(img, max_width, max_height)
+            images.append(scaled)
+            if scaled.get_width() > max_loaded_width:
+                max_loaded_width = scaled.get_width()
+        return images, max_loaded_width
     
     def _scale_button_image(self, original_image, reference_h):
         """
@@ -152,11 +190,24 @@ class Game:
         rect_width = self.right_width - margin * 2
         available_height = self.config.HEIGHT - margin * 4
         rect_height = available_height / 3
+        image_padding = 16
+        text_padding = 16
+        labels = ["Typing Skill", "Auto Typing", "CPU"]
+
+        # 画像の最大幅を使ってラベルの基準X座標を決定（全行共通）
+        label_base_left = (
+            self.left_width
+            + margin
+            + image_padding
+            + self.right_image_max_width
+            + image_padding
+        )
 
         for i in range(3):
             top = margin + i * (rect_height + margin)
+            rect_x = self.left_width + margin
             rect = pygame.Rect(
-                self.left_width + margin,
+                rect_x,
                 top,
                 rect_width,
                 rect_height,
@@ -174,6 +225,22 @@ class Game:
                 width=2,
                 border_radius=12,
             )
+
+            # 画像を長方形の上に重ねて表示（左寄せ＋余白）
+            img = self.right_images[i]
+            img_rect = img.get_rect()
+            img_rect.left = rect.left + image_padding
+            img_rect.centery = rect.centery
+            self.screen.blit(img, img_rect)
+
+            # ラベルを画像の右隣・上部に配置（枠内に収まるよう調整）
+            label_surface = self.label_font.render(labels[i], True, self.config.TEXT_COLOR)
+            label_rect = label_surface.get_rect()
+            desired_left = label_base_left
+            max_left = rect.right - text_padding - label_rect.width
+            label_rect.left = min(desired_left, max_left)
+            label_rect.top = rect.top + text_padding
+            self.screen.blit(label_surface, label_rect)
     
     def run(self):
         """メインループ"""
