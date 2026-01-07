@@ -1,6 +1,9 @@
 # 要件定義.mdと技術選定.mdをignore
 docs/
 
+# ゲームセーブデータ
+save.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
