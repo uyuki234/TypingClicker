@@ -27,6 +27,10 @@ class Counter:
         """カウントをリセット"""
         self.value = 0
 
+    def set_value(self, value):
+        """外部状態に合わせて値を更新"""
+        self.value = value
+
     def draw(self, surface, text_color):
         """カウンターを描画"""
         center_x = self.offset_x + self.width // 2

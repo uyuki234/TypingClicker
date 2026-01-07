@@ -73,7 +73,10 @@ class Game:
         self.right_label_font = pygame.font.SysFont(None, right_label_size)
         self.right_sublabel_font = pygame.font.SysFont(None, right_sublabel_size)
 
-        # レベル（未購入状態。今回はUIのみで増減は未実装）
+        # ゲーム状態（タイピング力とレベル）
+        self.typing_power = 0
+        self.power_per_click_base = 1
+        self.power_per_second_base = 0
         self.practice_level = 0
         self.auto_level = 0
         self.multiplier_level = 0
@@ -94,7 +97,9 @@ class Game:
         # 右パネル用の画像を事前読み込み
         self.right_images, self.right_image_max_width = self._load_right_images()
         
+        self.right_button_rects = []
         self.running = True
+        self.auto_accumulator_ms = 0
     
     def _init_button(self):
         """ボタンを初期化"""
@@ -171,6 +176,15 @@ class Game:
             new_width = int(max_size * aspect_ratio)
         
         return pygame.transform.scale(original_image, (new_width, new_height))
+
+    def _current_multiplier(self):
+        return 1.5 ** self.multiplier_level
+
+    def _current_power_per_click(self):
+        return math.floor(self.power_per_click_base * self._current_multiplier())
+
+    def _current_power_per_second(self):
+        return math.floor(self.power_per_second_base * self._current_multiplier())
     
     def handle_events(self):
         """イベント処理"""
@@ -180,10 +194,16 @@ class Game:
             
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if self.button.is_clicked(event.pos):
-                    self.counter.increment()
+                    self._add_typing_power(self._current_power_per_click())
+                else:
+                    for idx, rect in enumerate(self.right_button_rects):
+                        if rect.collidepoint(event.pos):
+                            self._handle_purchase(idx)
+                            break
             
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
+                    self.typing_power = 0
                     self.counter.reset()
                 elif event.key == pygame.K_ESCAPE:
                     self.running = False
@@ -191,6 +211,7 @@ class Game:
     def render(self):
         """画面に描画"""
         self.screen.fill(self.config.BG_COLOR)
+        self.counter.set_value(self.typing_power)
         self.button.draw(self.screen)
         self.counter.draw(self.screen, self.config.TEXT_COLOR)
         self._draw_right_panel()
@@ -205,9 +226,20 @@ class Game:
         image_padding = 16
         text_padding = 16
         labels = ["Typing Skill", "Auto Typing", "CPU"]
-        sublabels = ["+ n Per Click", "+ n Per Second", "× n All"]
-        level_labels = ["Level n", "Level n", "Level n"]
+        sublabels = [
+            f"+ {self._current_power_per_click():,} Per Click",
+            f"+ {self._current_power_per_second():,} Per Second",
+            f"× {self._current_multiplier():.2f} All",
+        ]
+        level_labels = [
+            f"Level {self.practice_level}",
+            f"Level {self.auto_level}",
+            f"Level {self.multiplier_level}",
+        ]
         costs = self._calc_costs()
+
+        # ボタン領域をクリック判定用に初期化
+        self.right_button_rects = []
 
         # ボタンサイズ（各枠の中で下部に配置）
         button_width = int(rect_width * 0.55)
@@ -309,22 +341,62 @@ class Game:
             cost_rect = cost_surface.get_rect(center=btn_rect.center)
             self.screen.blit(cost_surface, cost_rect)
 
+            # クリック判定用に保持
+            self.right_button_rects.append(btn_rect)
+
     def _calc_costs(self):
         """UI表示用のコスト計算（購入ロジックなし）"""
         practice_cost = math.ceil(10 * (1.35 ** self.practice_level))
         auto_cost = math.ceil(50 * (1.60 ** self.auto_level))
         multiplier_cost = math.ceil(500 * (3.00 ** self.multiplier_level))
         return [practice_cost, auto_cost, multiplier_cost]
+
+    def _handle_purchase(self, idx):
+        """アップグレード購入処理（資金確認のみ）"""
+        costs = self._calc_costs()
+        cost = costs[idx]
+        if self.typing_power < cost:
+            return  # 資金不足
+
+        # 支払い
+        self.typing_power -= cost
+
+        # レベル更新と効果反映
+        if idx == 0:
+            self.practice_level += 1
+            self.power_per_click_base += 1
+        elif idx == 1:
+            self.auto_level += 1
+            self.power_per_second_base += 2
+        elif idx == 2:
+            self.multiplier_level += 1
+
+        # 表示更新
+        self.counter.set_value(self.typing_power)
     
     def run(self):
         """メインループ"""
         while self.running:
-            self.clock.tick(self.config.FPS)
+            dt = self.clock.tick(self.config.FPS)
+            self._update_auto(dt)
             self.handle_events()
             self.render()
         
         pygame.quit()
         sys.exit()
+
+    def _update_auto(self, dt_ms):
+        """毎秒加算の処理（Auto Typing）"""
+        self.auto_accumulator_ms += dt_ms
+        while self.auto_accumulator_ms >= 1000:
+            self.auto_accumulator_ms -= 1000
+            gain = self._current_power_per_second()
+            if gain > 0:
+                self._add_typing_power(gain)
+
+    def _add_typing_power(self, amount):
+        self.typing_power += amount
+        self.counter.set_value(self.typing_power)
 
 
 if __name__ == "__main__":
