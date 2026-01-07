@@ -14,6 +14,9 @@ class Config:
     TEXT_COLOR = (235, 235, 235)
     FPS = 60
     BTN_IMAGE_RATIO = 0.35
+    PANEL_BG = (34, 34, 46)
+    PANEL_RECT = (58, 92, 130)
+    PANEL_RECT_BORDER = (120, 160, 200)
 
 
 class Button:
@@ -52,16 +55,29 @@ class Game:
         )
         pygame.display.set_caption("TypingClicker")
         self.clock = pygame.time.Clock()
+
+        # レイアウト領域
+        self.left_width = self.config.WIDTH // 2
+        self.right_width = self.config.WIDTH - self.left_width
         
         # フォント初期化
-        base_size = int(min(self.config.WIDTH, self.config.HEIGHT) * 0.12)
+        base_size = int(min(self.left_width, self.config.HEIGHT) * 0.12)
+        label_size = int(base_size * 0.4)
         self.counter_font = pygame.font.SysFont(None, base_size)
+        self.label_font = pygame.font.SysFont(None, label_size)
         
         # ボタン初期化
         self.button = self._init_button()
         
         # カウンター初期化
-        self.counter = Counter(self.counter_font, self.config.WIDTH, self.config.HEIGHT)
+        self.counter = Counter(
+            self.counter_font,
+            self.left_width,
+            self.config.HEIGHT,
+            offset_x=0,
+            offset_y=0,
+            label_font=self.label_font,
+        )
         
         self.running = True
     
@@ -77,7 +93,7 @@ class Game:
         button_image = self._scale_button_image(original_image, self.config.HEIGHT)
         
         # ボタン中央座標
-        center = pygame.Vector2(self.config.WIDTH // 2, self.config.HEIGHT // 2)
+        center = pygame.Vector2(self.left_width // 2, self.config.HEIGHT * 0.55)
         
         return Button(center, button_image)
     
@@ -127,7 +143,37 @@ class Game:
         self.screen.fill(self.config.BG_COLOR)
         self.button.draw(self.screen)
         self.counter.draw(self.screen, self.config.TEXT_COLOR)
+        self._draw_right_panel()
         pygame.display.flip()
+
+    def _draw_right_panel(self):
+        """右パネルのUI（長方形3つ）を描画"""
+        margin = 24
+        rect_width = self.right_width - margin * 2
+        available_height = self.config.HEIGHT - margin * 4
+        rect_height = available_height / 3
+
+        for i in range(3):
+            top = margin + i * (rect_height + margin)
+            rect = pygame.Rect(
+                self.left_width + margin,
+                top,
+                rect_width,
+                rect_height,
+            )
+            pygame.draw.rect(
+                self.screen,
+                self.config.PANEL_RECT,
+                rect,
+                border_radius=12,
+            )
+            pygame.draw.rect(
+                self.screen,
+                self.config.PANEL_RECT_BORDER,
+                rect,
+                width=2,
+                border_radius=12,
+            )
     
     def run(self):
         """メインループ"""
