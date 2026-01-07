@@ -20,6 +20,9 @@ class Config:
     PANEL_RECT_BORDER = (120, 160, 200)
     PANEL_BTN = (80, 140, 200)
     PANEL_BTN_BORDER = (180, 210, 240)
+    LEVEL_BAR_BG = (40, 40, 50)
+    LEVEL_BAR_FILL = (90, 170, 120)
+    LEVEL_BAR_BORDER = (180, 210, 240)
 
 
 class Button:
@@ -80,6 +83,9 @@ class Game:
         self.practice_level = 0
         self.auto_level = 0
         self.multiplier_level = 0
+        self.level = 1
+        self.xp = 0
+        self.next_level_xp = self._xp_required(self.level + 1)
         
         # ボタン初期化
         self.button = self._init_button()
@@ -177,6 +183,9 @@ class Game:
         
         return pygame.transform.scale(original_image, (new_width, new_height))
 
+    def _xp_required(self, n):
+        return math.ceil(125 * (1.5 ** (n - 1)))
+
     def _current_multiplier(self):
         return 1.5 ** self.multiplier_level
 
@@ -214,6 +223,7 @@ class Game:
         self.counter.set_value(self.typing_power)
         self.button.draw(self.screen)
         self.counter.draw(self.screen, self.config.TEXT_COLOR)
+        self._draw_level_bar()
         self._draw_right_panel()
         pygame.display.flip()
 
@@ -344,6 +354,50 @@ class Game:
             # クリック判定用に保持
             self.right_button_rects.append(btn_rect)
 
+    def _draw_level_bar(self):
+        """左下にレベル進捗バーを描画（経済に影響しない）"""
+        margin = 24
+        bar_width = int(self.left_width * 0.85)
+        bar_height = 24
+        bar_left = margin
+        bar_top = self.config.HEIGHT - margin - bar_height - 18  # 余白分上に
+
+        # 背景と枠
+        bar_rect = pygame.Rect(bar_left, bar_top, bar_width, bar_height)
+        pygame.draw.rect(self.screen, self.config.LEVEL_BAR_BG, bar_rect, border_radius=8)
+        pygame.draw.rect(self.screen, self.config.LEVEL_BAR_BORDER, bar_rect, width=2, border_radius=8)
+
+        # 進捗
+        needed = max(self.next_level_xp - self._xp_for_current_level(), 1)
+        progress = self._xp_for_current_level_progress_ratio()
+        fill_width = int(bar_width * progress)
+        if fill_width > 0:
+            fill_rect = pygame.Rect(bar_left, bar_top, fill_width, bar_height)
+            pygame.draw.rect(self.screen, self.config.LEVEL_BAR_FILL, fill_rect, border_radius=8)
+
+        # テキスト（バー内に%）
+        percent_text = f"{progress * 100:5.1f}%"
+        percent_surface = self.right_sublabel_font.render(percent_text, True, self.config.TEXT_COLOR)
+        percent_rect = percent_surface.get_rect(center=bar_rect.center)
+        self.screen.blit(percent_surface, percent_rect)
+
+        # 下に Lv と Next を表示
+        level_text = f"Lv {self.level}"
+        next_text = f"Next: {self.next_level_xp:,} XP"
+        level_surface = self.right_sublabel_font.render(level_text, True, self.config.TEXT_COLOR)
+        next_surface = self.right_sublabel_font.render(next_text, True, self.config.TEXT_COLOR)
+
+        # 配置: 左にLv、右にNext、下にRemain
+        level_rect = level_surface.get_rect()
+        next_rect = next_surface.get_rect()
+        level_rect.left = bar_left
+        level_rect.top = bar_rect.bottom + 2
+        next_rect.right = bar_left + bar_width
+        next_rect.top = bar_rect.bottom + 2
+
+        self.screen.blit(level_surface, level_rect)
+        self.screen.blit(next_surface, next_rect)
+
     def _calc_costs(self):
         """UI表示用のコスト計算（購入ロジックなし）"""
         practice_cost = math.ceil(10 * (1.35 ** self.practice_level))
@@ -396,7 +450,27 @@ class Game:
 
     def _add_typing_power(self, amount):
         self.typing_power += amount
+        self._add_xp(amount)
         self.counter.set_value(self.typing_power)
+
+    def _add_xp(self, amount):
+        self.xp += amount
+        self._check_level_up()
+
+    def _check_level_up(self):
+        # 複数段のレベルアップにも対応
+        while self.xp >= self.next_level_xp:
+            self.level += 1
+            self.next_level_xp = self._xp_required(self.level + 1)
+
+    def _xp_for_current_level(self):
+        # 現在レベルの開始累計XP
+        return self._xp_required(self.level) if self.level > 1 else 0
+
+    def _xp_for_current_level_progress_ratio(self):
+        level_start_xp = self._xp_for_current_level()
+        span = max(self.next_level_xp - level_start_xp, 1)
+        return max(0.0, min(1.0, (self.xp - level_start_xp) / span))
 
 
 if __name__ == "__main__":
