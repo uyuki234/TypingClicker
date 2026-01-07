@@ -2,6 +2,9 @@
 
 タイピング力を増やして世界一のプログラマーになろう
 
+<img width="1028" height="736" alt="スクリーンショット 2026-01-07 20 50 36" src="https://github.com/user-attachments/assets/46efccfd-a0bb-46d3-ac46-553be413f122" />
+
+
 ## ゲームの概要
 
 **TypingClicker** は、キーボードをクリック（またはキー入力）してタイピング力（Typing Power）を増やし、アップグレードを購入して成長していくインクリメンタルゲームです。
