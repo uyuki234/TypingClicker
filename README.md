@@ -1,5 +1,5 @@
-# CreditClicker
-単位を集めて卒業しよう
+# TypingClicker
+タイピング力を増やして世界一のプログラマーになろう
 
 # 評価のポイント
 - python3 main.py で起動し、ゲームとして遊べるか。
