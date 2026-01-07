@@ -3,6 +3,7 @@ import pygame
 import sys
 import os
 import math
+import json
 
 from counter import Counter
 
@@ -86,6 +87,9 @@ class Game:
         self.level = 1
         self.xp = 0
         self.next_level_xp = self._xp_required(self.level + 1)
+
+        # セーブファイルパス
+        self.save_path = os.path.join(os.path.dirname(__file__), "save.json")
         
         # ボタン初期化
         self.button = self._init_button()
@@ -106,6 +110,9 @@ class Game:
         self.right_button_rects = []
         self.running = True
         self.auto_accumulator_ms = 0
+
+        # 保存データの読み込み
+        self._load_state()
     
     def _init_button(self):
         """ボタンを初期化"""
@@ -436,6 +443,7 @@ class Game:
             self.handle_events()
             self.render()
         
+        self._save_state()
         pygame.quit()
         sys.exit()
 
@@ -471,6 +479,46 @@ class Game:
         level_start_xp = self._xp_for_current_level()
         span = max(self.next_level_xp - level_start_xp, 1)
         return max(0.0, min(1.0, (self.xp - level_start_xp) / span))
+
+    def _save_state(self):
+        data = {
+            "typing_power": self.typing_power,
+            "power_per_click_base": self.power_per_click_base,
+            "power_per_second_base": self.power_per_second_base,
+            "practice_level": self.practice_level,
+            "auto_level": self.auto_level,
+            "multiplier_level": self.multiplier_level,
+            "level": self.level,
+            "xp": self.xp,
+        }
+        try:
+            with open(self.save_path, "w", encoding="utf-8") as f:
+                json.dump(data, f)
+        except OSError:
+            # 保存失敗時は黙って続行
+            pass
+
+    def _load_state(self):
+        if not os.path.exists(self.save_path):
+            return
+        try:
+            with open(self.save_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return
+
+        self.typing_power = int(data.get("typing_power", self.typing_power))
+        self.power_per_click_base = int(data.get("power_per_click_base", self.power_per_click_base))
+        self.power_per_second_base = int(data.get("power_per_second_base", self.power_per_second_base))
+        self.practice_level = int(data.get("practice_level", self.practice_level))
+        self.auto_level = int(data.get("auto_level", self.auto_level))
+        self.multiplier_level = int(data.get("multiplier_level", self.multiplier_level))
+        self.level = int(data.get("level", self.level))
+        self.xp = int(data.get("xp", self.xp))
+        # next_level_xp はレベルから再計算
+        self.next_level_xp = self._xp_required(self.level + 1)
+        # 表示を最新化
+        self.counter.set_value(self.typing_power)
 
 
 if __name__ == "__main__":
