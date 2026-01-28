@@ -58,7 +58,7 @@ class Game:
         # 保存データの読み込み
         self.state.load()
         self.next_level_xp = GameLogic.xp_required(self.state.level + 1)
-        self.counter.set_value(self.state.typing_power)
+        self.counter.set_value(self.state.english_power)
 
     def _init_fonts(self):
         """フォント初期化"""
@@ -250,7 +250,7 @@ class Game:
         power = GameLogic.current_power_per_click(
             self.state.power_per_click_base, multiplier
         )
-        self._add_typing_power(power)
+        self._add_english_power(power)
 
     def _check_right_panel_buttons(self, pos):
         """右パネルボタンチェック"""
@@ -269,14 +269,14 @@ class Game:
     def _handle_typing_input(self, char):
         """タイピング入力処理"""
         if self.typing_display.check_input(char):
-            self._add_typing_power(1)
+            self._add_english_power(1)
             if self.typing_display.is_complete():
                 self._set_random_sentence()
 
     def render(self):
         """画面に描画"""
         self.screen.fill(self.config.BG_COLOR)
-        self.counter.set_value(self.state.typing_power)
+        self.counter.set_value(self.state.english_power)
         self.button.draw(self.screen)
         self.counter.draw(self.screen, self.config.TEXT_COLOR)
 
@@ -329,12 +329,12 @@ class Game:
             self.state.multiplier_level
         )
         cost = costs[idx]
-        if self.state.typing_power < cost:
+        if self.state.english_power < cost:
             return  # 資金不足
 
-        self.state.typing_power -= cost
+        self.state.english_power -= cost
         self._apply_upgrade(idx)
-        self.counter.set_value(self.state.typing_power)
+        self.counter.set_value(self.state.english_power)
 
     def _apply_upgrade(self, idx):
         """アップグレード効果を適用"""
@@ -367,12 +367,12 @@ class Game:
             multiplier = GameLogic.current_multiplier(self.state.multiplier_level)
             gain = GameLogic.current_power_per_second(self.state.power_per_second_base, multiplier)
             if gain > 0:
-                self._add_typing_power(gain)
+                self._add_english_power(gain)
 
-    def _add_typing_power(self, amount):
-        self.state.typing_power += amount
+    def _add_english_power(self, amount):
+        self.state.english_power += amount
         self._add_xp(amount)
-        self.counter.set_value(self.state.typing_power)
+        self.counter.set_value(self.state.english_power)
 
     def _add_xp(self, amount):
         self.state.xp += amount

@@ -40,7 +40,7 @@ class Counter:
         center_y = self.offset_y + int(self.height * 0.2)
 
         # ラベル
-        label_surface = self.label_font.render("Typing Power", True, text_color)
+        label_surface = self.label_font.render("English Power", True, text_color)
         label_rect = label_surface.get_rect(
             center=(center_x, center_y - label_surface.get_height() - 20)
         )

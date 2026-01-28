@@ -17,7 +17,7 @@ class GameState:
         )
 
         # ゲーム状態
-        self.typing_power = 0
+        self.english_power = 0
         self.power_per_click_base = 1
         self.power_per_second_base = 0
         self.practice_level = 0
@@ -29,7 +29,7 @@ class GameState:
     def save(self):
         """現在の状態をJSONファイルに保存"""
         data = {
-            "typing_power": self.typing_power,
+            "english_power": self.english_power,
             "power_per_click_base": self.power_per_click_base,
             "power_per_second_base": self.power_per_second_base,
             "practice_level": self.practice_level,
@@ -56,7 +56,10 @@ class GameState:
         except (OSError, json.JSONDecodeError):
             return
 
-        self.typing_power = int(data.get("typing_power", self.typing_power))
+        # 後方互換性のためtyping_powerも確認
+        self.english_power = int(
+            data.get("english_power", data.get("typing_power", self.english_power))
+        )
         self.power_per_click_base = int(
             data.get("power_per_click_base", self.power_per_click_base)
         )
