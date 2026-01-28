@@ -5,7 +5,7 @@ import os
 from config import Config
 from game_state import GameState
 from game_logic import GameLogic
-from ui import Button, Counter, UIRenderer
+from ui import Button, Counter, UIRenderer, TypingDisplay
 
 
 class Game:
@@ -51,6 +51,28 @@ class Game:
             offset_x=0,
             offset_y=0,
             label_font=self.label_font,
+        )
+
+        # タイピング表示の初期化
+        # ボタンは y = HEIGHT * 0.55 の中央、進捗バーは下から約 70px
+        # この間に英文を配置
+        typing_display_font_size = int(base_size * 0.35)
+        typing_display_font = pygame.font.SysFont(None, typing_display_font_size)
+        
+        button_center_y = int(self.config.HEIGHT * 0.55)
+        button_size = int(self.config.HEIGHT * self.config.BTN_IMAGE_RATIO)
+        button_bottom_y = button_center_y + button_size // 2
+        
+        progress_bar_top_y = self.config.HEIGHT - 24 - 18 - 24  # 進捗バーの上部Y座標
+        typing_display_height = progress_bar_top_y - button_bottom_y - 20  # 20pxの余白
+        typing_display_top_y = button_bottom_y + 10
+        
+        self.typing_display = TypingDisplay(
+            typing_display_font,
+            self.left_width,
+            typing_display_height,
+            offset_x=0,
+            offset_y=typing_display_top_y,
         )
 
         # 右パネル用の画像を事前読み込み
@@ -210,6 +232,9 @@ class Game:
             self.right_images,
             self.right_image_max_width
         )
+        
+        # タイピング表示の描画
+        self.typing_display.draw(self.screen, self.config.TEXT_COLOR)
         
         pygame.display.flip()
 
