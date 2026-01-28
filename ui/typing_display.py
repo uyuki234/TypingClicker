@@ -81,46 +81,52 @@ class TypingDisplay:
         if not self.english_text:
             return
 
-        # スペースを_に置換して表示
-        display_text = self.english_text.replace(' ', '_')
+        japanese_surface, typed_surface, remaining_surface = self._render_text_surfaces(color)
+        positions = self._calculate_text_positions(
+            japanese_surface, typed_surface, remaining_surface
+        )
+        self._blit_text_surfaces(
+            surface, japanese_surface, typed_surface, remaining_surface, positions
+        )
 
-        # 入力済み部分と未入力部分に分ける
+    def _render_text_surfaces(self, color):
+        """テキストサーフェスをレンダリング"""
+        gray_color = (128, 128, 128)
+        display_text = self.english_text.replace(' ', '_')
         typed_part = display_text[:self.current_position]
         remaining_part = display_text[self.current_position:]
 
-        # 灰色（入力済み）
-        gray_color = (128, 128, 128)
-
-        # 日本語訳をレンダリング
         japanese_surface = self.japanese_font.render(self.japanese_text, True, color)
-
-        # 入力済み部分をレンダリング
         typed_surface = self.english_font.render(typed_part, True, gray_color)
-        # 未入力部分をレンダリング
         remaining_surface = self.english_font.render(remaining_part, True, color)
 
-        # 全体の幅を計算（英文）
+        return japanese_surface, typed_surface, remaining_surface
+
+    def _calculate_text_positions(self, japanese_surface, typed_surface, remaining_surface):
+        """テキストの描画位置を計算"""
         english_width = typed_surface.get_width() + remaining_surface.get_width()
-
-        # 行間
         line_spacing = 15
-
-        # 合計の高さ
         total_height = japanese_surface.get_height() + line_spacing + typed_surface.get_height()
-
-        # 垂直方向の開始位置（中央揃え）
         start_y = self.offset_y + (self.container_height - total_height) // 2
 
-        # 日本語訳を上に配置（中央揃え）
         japanese_x = self.offset_x + (self.container_width - japanese_surface.get_width()) // 2
         japanese_y = start_y
-        surface.blit(japanese_surface, (japanese_x, japanese_y))
 
-        # 英文を下に配置（中央揃え）
         english_start_x = self.offset_x + (self.container_width - english_width) // 2
         english_y = start_y + japanese_surface.get_height() + line_spacing
 
-        # 入力済み部分を描画
-        surface.blit(typed_surface, (english_start_x, english_y))
-        # 未入力部分を描画
-        surface.blit(remaining_surface, (english_start_x + typed_surface.get_width(), english_y))
+        return {
+            'japanese_pos': (japanese_x, japanese_y),
+            'english_start_x': english_start_x,
+            'english_y': english_y,
+        }
+
+    def _blit_text_surfaces(self, surface, japanese_surface, typed_surface,
+                            remaining_surface, positions):
+        """テキストサーフェスを描画"""
+        surface.blit(japanese_surface, positions['japanese_pos'])
+        surface.blit(typed_surface, (positions['english_start_x'], positions['english_y']))
+        surface.blit(
+            remaining_surface,
+            (positions['english_start_x'] + typed_surface.get_width(), positions['english_y'])
+        )

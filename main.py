@@ -30,6 +30,12 @@ class Game:
         self.right_width = self.config.RIGHT_WIDTH
         self.left_width = self.config.WIDTH - self.right_width
 
+        # 属性の事前宣言
+        self.typing_display = None
+        self.button = None
+        self.counter = None
+        self.ui_renderer = None
+
         # フォント初期化
         self._init_fonts()
 
@@ -183,8 +189,7 @@ class Game:
             img = pygame.image.load(path)
             scaled = self._scale_image_keep_aspect(img, max_width, max_height)
             images.append(scaled)
-            if scaled.get_width() > max_loaded_width:
-                max_loaded_width = scaled.get_width()
+            max_loaded_width = max(max_loaded_width, scaled.get_width())
         return images, max_loaded_width
 
     def _scale_button_image(self, original_image, reference_h):
