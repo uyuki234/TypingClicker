@@ -20,10 +20,14 @@ class TypingDisplay:
         self.container_height = container_height
         self.offset_x = offset_x
         self.offset_y = offset_y
-        self.text = "Please contact customer support for assistance."
+        self.text = ""
     
     def set_text(self, text):
-        """表示するテキストを設定"""
+        """表示するテキストを設定
+        
+        Args:
+            text (str): 表示する英文
+        """
         self.text = text
     
     def draw(self, surface, color):

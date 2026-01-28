@@ -1,11 +1,13 @@
 import pygame
 import sys
 import os
+import random
 
 from config import Config
 from game_state import GameState
 from game_logic import GameLogic
 from ui import Button, Counter, UIRenderer, TypingDisplay
+from sentences import sentences
 
 
 class Game:
@@ -56,7 +58,7 @@ class Game:
         # タイピング表示の初期化
         # ボタンは y = HEIGHT * 0.48 の中央、進捗バーは下から約 70px
         # この間に英文を配置
-        typing_display_font_size = int(base_size * 0.35)
+        typing_display_font_size = int(base_size * 0.55)
         typing_display_font = pygame.font.SysFont(None, typing_display_font_size)
         
         button_center_y = int(self.config.HEIGHT * 0.48)
@@ -74,6 +76,9 @@ class Game:
             offset_x=0,
             offset_y=typing_display_top_y,
         )
+        
+        # ランダムな文章を選択して表示
+        self._set_random_sentence()
 
         # 右パネル用の画像を事前読み込み
         self.right_images, self.right_image_max_width = self._load_right_images()
@@ -175,6 +180,13 @@ class Game:
             new_width = int(max_size * aspect_ratio)
         
         return pygame.transform.scale(original_image, (new_width, new_height))
+    
+    def _set_random_sentence(self):
+        """ランダムな文章を選択して表示"""
+        sentence = random.choice(sentences)
+        # sentence = [id, english, japanese]
+        english = sentence[1]
+        self.typing_display.set_text(english)
     
     def handle_events(self):
         """イベント処理"""
