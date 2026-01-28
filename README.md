@@ -202,7 +202,7 @@ NotImplementedError: font module not available (ImportError: cannot import name 
 
 **解決方法:**
 
-1. **Pythonのバージョンを下げる**
+1. **Pythonのバージョンを下げる**  
 Pygameは最新版のPythonに非対応である場合があるので、エラーが解消されない場合はPythonのバージョンを下げてみてください。
 バージョンを下げることでエラーが解消されることがあります。  
 私の環境では起きませんでしたが、Python3.11で動作した例があります。
