@@ -202,7 +202,12 @@ NotImplementedError: font module not available (ImportError: cannot import name 
 
 **解決方法:**
 
-1. **仮想環境を再構築する（最も確実）**
+1. **Pythonのバージョンを下げる**
+Pygameは最新版のPythonに非対応である場合があるので、エラーが解消されない場合はPythonのバージョンを下げてみてください。
+バージョンを下げることでエラーが解消されることがあります。  
+私の環境では起きませんでしたが、Python3.11で動作した例があります。
+
+3. **仮想環境を再構築する（最も確実）**
    ```bash
    # 既存の仮想環境を削除
    rm -rf venv
@@ -216,13 +221,13 @@ NotImplementedError: font module not available (ImportError: cannot import name 
    pip install -r requirements.txt
    ```
 
-2. **pygame を再インストール**
+4. **pygame を再インストール**
    ```bash
    pip uninstall pygame
    pip install pygame==2.6.1 --force-reinstall --no-cache-dir
    ```
 
-3. **SDL2 がインストールされていることを確認（macOS の場合）**
+5. **SDL2 がインストールされていることを確認（macOS の場合）**
    ```bash
    # Homebrewを使用している場合
    brew install sdl2
