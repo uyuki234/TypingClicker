@@ -6,7 +6,7 @@ import json
 
 class GameState:
     """ゲーム状態を管理するクラス"""
-    
+
     def __init__(self, save_path=None):
         """
         Args:
@@ -15,7 +15,7 @@ class GameState:
         self.save_path = save_path or os.path.join(
             os.path.dirname(__file__), "save.json"
         )
-        
+
         # ゲーム状態
         self.typing_power = 0
         self.power_per_click_base = 1
@@ -25,7 +25,7 @@ class GameState:
         self.multiplier_level = 0
         self.level = 1
         self.xp = 0
-    
+
     def save(self):
         """現在の状態をJSONファイルに保存"""
         data = {
@@ -44,21 +44,25 @@ class GameState:
         except OSError:
             # 保存失敗時は黙って続行
             pass
-    
+
     def load(self):
         """JSONファイルから状態を読み込み"""
         if not os.path.exists(self.save_path):
             return
-        
+
         try:
             with open(self.save_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except (OSError, json.JSONDecodeError):
             return
-        
+
         self.typing_power = int(data.get("typing_power", self.typing_power))
-        self.power_per_click_base = int(data.get("power_per_click_base", self.power_per_click_base))
-        self.power_per_second_base = int(data.get("power_per_second_base", self.power_per_second_base))
+        self.power_per_click_base = int(
+            data.get("power_per_click_base", self.power_per_click_base)
+        )
+        self.power_per_second_base = int(
+            data.get("power_per_second_base", self.power_per_second_base)
+        )
         self.practice_level = int(data.get("practice_level", self.practice_level))
         self.auto_level = int(data.get("auto_level", self.auto_level))
         self.multiplier_level = int(data.get("multiplier_level", self.multiplier_level))

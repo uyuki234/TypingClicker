@@ -5,7 +5,7 @@ import pygame
 
 class UIRenderer:
     """UI描画を管理するクラス"""
-    
+
     def __init__(self, config, fonts, left_width, right_width, screen_height):
         """
         Args:
@@ -23,7 +23,7 @@ class UIRenderer:
         self.right_width = right_width
         self.screen_height = screen_height
         self.right_button_rects = []
-    
+
     def draw_right_panel(self, surface, game_state, right_images, right_image_max_width):
         """右パネルのUI（長方形3つ）を描画"""
         margin = 24
@@ -31,7 +31,6 @@ class UIRenderer:
         available_height = self.screen_height - margin * 4
         rect_height = available_height / 3
         image_padding = 16
-        text_padding = 16
         labels = ["Typing Skill", "Auto Typing", "CPU"]
         sublabels = [
             f"+ {game_state['power_per_click']:,} Per Click",
@@ -112,7 +111,9 @@ class UIRenderer:
             surface.blit(label_surface, label_rect)
 
             # サブラベル（効果概要）をメインラベルの下に配置（左端を揃える）
-            sub_surface = self.right_sublabel_font.render(sublabels[i], True, self.config.TEXT_COLOR)
+            sub_surface = self.right_sublabel_font.render(
+                sublabels[i], True, self.config.TEXT_COLOR
+            )
             sub_rect = sub_surface.get_rect()
             sub_rect.left = btn_left
             sub_rect.top = label_rect.bottom + 2
@@ -147,7 +148,7 @@ class UIRenderer:
 
             # クリック判定用に保持
             self.right_button_rects.append(btn_rect)
-    
+
     def draw_level_bar(self, surface, level_state):
         """左下にレベル進捗バーを描画"""
         margin = 24
@@ -170,7 +171,9 @@ class UIRenderer:
 
         # テキスト（バー内に%）
         percent_text = f"{progress * 100:5.1f}%"
-        percent_surface = self.right_sublabel_font.render(percent_text, True, self.config.TEXT_COLOR)
+        percent_surface = self.right_sublabel_font.render(
+            percent_text, True, self.config.TEXT_COLOR
+        )
         percent_rect = percent_surface.get_rect(center=bar_rect.center)
         surface.blit(percent_surface, percent_rect)
 

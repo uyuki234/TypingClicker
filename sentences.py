@@ -1,5 +1,7 @@
 # ’と'の違いに注意（１敗）
 
+"""Typing practice sentences database."""
+
 sentences = [
     [1, "Please submit the report by Friday.", "金曜日までに報告書を提出してください。"],
     [2, "The meeting starts at nine sharp.", "会議は9時ちょうどに始まります。"],
