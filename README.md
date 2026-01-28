@@ -184,3 +184,55 @@ E1101 は、オブジェクトにそのようなメンバーはないよ、と�
 
 - **イラスト**: 生成 AI を利用して作成
 - **フォント**: Noto Sans Japanese を使用
+
+## トラブルシューティング
+
+### pygame.font.Font が見つからないエラー
+
+**エラーメッセージ例:**
+```
+NotImplementedError: font module not available (ImportError: cannot import name 'Font' from partially initialized module 'pygame.font' ...)
+```
+
+**原因:**
+このエラーは主に以下の場合に発生します：
+1. **pygame の破損したインストール**: インストール中に不完全になった可能性
+2. **環境の問題**: SDL2 がシステムに正しくインストールされていない
+3. **Python バージョンの互換性**: 非常に新しい Python バージョン（3.14 など）で稀に発生
+
+**解決方法:**
+
+1. **仮想環境を再構築する（最も確実）**
+   ```bash
+   # 既存の仮想環境を削除
+   rm -rf venv
+   
+   # 新しい仮想環境を作成
+   python3 -m venv venv
+   source venv/bin/activate  # macOS/Linuxの場合
+   
+   # パッケージを再インストール
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+
+2. **pygame を再インストール**
+   ```bash
+   pip uninstall pygame
+   pip install pygame==2.6.1 --force-reinstall --no-cache-dir
+   ```
+
+3. **SDL2 がインストールされていることを確認（macOS の場合）**
+   ```bash
+   # Homebrewを使用している場合
+   brew install sdl2
+   ```
+
+**テスト済み環境:**
+- Python 3.14.2
+- pygame 2.6.1
+- SDL 2.32.10
+
+**確認状況:**
+- ✓ 現在の環境では正常に動作
+- 環境差による一時的な問題の可能性が高い
