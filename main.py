@@ -6,6 +6,7 @@ import math
 import json
 
 from counter import Counter
+from ui_renderer import UIRenderer
 
 
 class Config:
@@ -107,7 +108,20 @@ class Game:
         # 右パネル用の画像を事前読み込み
         self.right_images, self.right_image_max_width = self._load_right_images()
         
-        self.right_button_rects = []
+        # UI描画クラスの初期化
+        fonts = {
+            'label': self.label_font,
+            'right_label': self.right_label_font,
+            'right_sublabel': self.right_sublabel_font,
+        }
+        self.ui_renderer = UIRenderer(
+            self.config,
+            fonts,
+            self.left_width,
+            self.right_width,
+            self.config.HEIGHT
+        )
+        
         self.running = True
         self.auto_accumulator_ms = 0
 
@@ -212,7 +226,7 @@ class Game:
                 if self.button.is_clicked(event.pos):
                     self._add_typing_power(self._current_power_per_click())
                 else:
-                    for idx, rect in enumerate(self.right_button_rects):
+                    for idx, rect in enumerate(self.ui_renderer.right_button_rects):
                         if rect.collidepoint(event.pos):
                             self._handle_purchase(idx)
                             break
@@ -230,180 +244,33 @@ class Game:
         self.counter.set_value(self.typing_power)
         self.button.draw(self.screen)
         self.counter.draw(self.screen, self.config.TEXT_COLOR)
-        self._draw_level_bar()
-        self._draw_right_panel()
-        pygame.display.flip()
-
-    def _draw_right_panel(self):
-        """右パネルのUI（長方形3つ）を描画"""
-        margin = 24
-        rect_width = self.right_width - margin * 2
-        available_height = self.config.HEIGHT - margin * 4
-        rect_height = available_height / 3
-        image_padding = 16
-        text_padding = 16
-        labels = ["Typing Skill", "Auto Typing", "CPU"]
-        sublabels = [
-            f"+ {self._current_power_per_click():,} Per Click",
-            f"+ {self._current_power_per_second():,} Per Second",
-            f"× {self._current_multiplier():.2f} All",
-        ]
-        level_labels = [
-            f"Level {self.practice_level}",
-            f"Level {self.auto_level}",
-            f"Level {self.multiplier_level}",
-        ]
-        costs = self._calc_costs()
-
-        # ボタン領域をクリック判定用に初期化
-        self.right_button_rects = []
-
-        # ボタンサイズ（各枠の中で下部に配置）
-        button_width = int(rect_width * 0.55)
-        button_height = int(rect_height * 0.28)
-        button_padding_x = 16
-        button_padding_y = 12
-
-        # 画像の最大幅を使ってラベルの基準X座標を決定（全行共通）
-        label_base_left = (
-            self.left_width
-            + margin
-            + image_padding
-            + self.right_image_max_width
-            + image_padding
+        
+        # レベル進捗バーの描画
+        level_state = {
+            'level': self.level,
+            'next_xp': self.next_level_xp,
+            'progress': self._xp_for_current_level_progress_ratio(),
+        }
+        self.ui_renderer.draw_level_bar(self.screen, level_state)
+        
+        # 右パネルの描画
+        game_state = {
+            'power_per_click': self._current_power_per_click(),
+            'power_per_second': self._current_power_per_second(),
+            'multiplier': self._current_multiplier(),
+            'practice_level': self.practice_level,
+            'auto_level': self.auto_level,
+            'multiplier_level': self.multiplier_level,
+            'costs': self._calc_costs(),
+        }
+        self.ui_renderer.draw_right_panel(
+            self.screen,
+            game_state,
+            self.right_images,
+            self.right_image_max_width
         )
-
-        for i in range(3):
-            top = margin + i * (rect_height + margin)
-            rect_x = self.left_width + margin
-            rect = pygame.Rect(
-                rect_x,
-                top,
-                rect_width,
-                rect_height,
-            )
-            pygame.draw.rect(
-                self.screen,
-                self.config.PANEL_RECT,
-                rect,
-                border_radius=12,
-            )
-            pygame.draw.rect(
-                self.screen,
-                self.config.PANEL_RECT_BORDER,
-                rect,
-                width=2,
-                border_radius=12,
-            )
-
-            # 画像を長方形の上に重ねて表示（左寄せ＋余白）
-            img = self.right_images[i]
-            img_rect = img.get_rect()
-            img_rect.left = rect.left + image_padding
-            img_rect.centery = rect.centery
-            self.screen.blit(img, img_rect)
-
-            # ラベルを画像の右隣・上部に配置（枠内に収まるよう調整）
-            label_surface = self.right_label_font.render(labels[i], True, self.config.TEXT_COLOR)
-            label_rect = label_surface.get_rect()
-            desired_left = label_base_left
-            max_left = rect.right - text_padding - label_rect.width
-            label_rect.left = min(desired_left, max_left)
-            label_rect.top = rect.top + text_padding
-            self.screen.blit(label_surface, label_rect)
-
-            # サブラベル（効果概要）をラベルの下に表示
-            sub_surface = self.right_sublabel_font.render(sublabels[i], True, self.config.TEXT_COLOR)
-            sub_rect = sub_surface.get_rect()
-            sub_rect.left = label_rect.left
-            sub_rect.top = label_rect.bottom + 6
-            self.screen.blit(sub_surface, sub_rect)
-
-            # 下部ボタンとその上のレベル表示（デザインのみ）
-            # ボタンをラベル左位置に揃え、右余白を確保
-            btn_left = label_base_left
-            btn_top = rect.bottom - button_padding_y - button_height
-            # 右端は既存パディングを尊重し、必要に応じて幅を調整
-            btn_width = min(button_width, rect.right - button_padding_x - btn_left)
-            btn_rect = pygame.Rect(
-                btn_left,
-                btn_top,
-                btn_width,
-                button_height,
-            )
-            pygame.draw.rect(
-                self.screen,
-                self.config.PANEL_BTN,
-                btn_rect,
-                border_radius=10,
-            )
-            pygame.draw.rect(
-                self.screen,
-                self.config.PANEL_BTN_BORDER,
-                btn_rect,
-                width=2,
-                border_radius=10,
-            )
-
-            # ボタン上のラベル（中央揃え）
-            level_surface = self.label_font.render(level_labels[i], True, self.config.TEXT_COLOR)
-            level_rect = level_surface.get_rect()
-            level_rect.centerx = btn_rect.centerx
-            level_rect.bottom = btn_rect.top - 4
-            self.screen.blit(level_surface, level_rect)
-
-            # ボタン中央にコスト表示（UIのみ）
-            cost_text = f"Cost: {costs[i]:,}"
-            cost_surface = self.right_sublabel_font.render(cost_text, True, self.config.TEXT_COLOR)
-            cost_rect = cost_surface.get_rect(center=btn_rect.center)
-            self.screen.blit(cost_surface, cost_rect)
-
-            # クリック判定用に保持
-            self.right_button_rects.append(btn_rect)
-
-    def _draw_level_bar(self):
-        """左下にレベル進捗バーを描画（経済に影響しない）"""
-        margin = 24
-        bar_width = int(self.left_width * 0.85)
-        bar_height = 24
-        bar_left = margin
-        bar_top = self.config.HEIGHT - margin - bar_height - 18  # 余白分上に
-
-        # 背景と枠
-        bar_rect = pygame.Rect(bar_left, bar_top, bar_width, bar_height)
-        pygame.draw.rect(self.screen, self.config.LEVEL_BAR_BG, bar_rect, border_radius=8)
-        pygame.draw.rect(self.screen, self.config.LEVEL_BAR_BORDER, bar_rect, width=2, border_radius=8)
-
-        # 進捗
-        needed = max(self.next_level_xp - self._xp_for_current_level(), 1)
-        progress = self._xp_for_current_level_progress_ratio()
-        fill_width = int(bar_width * progress)
-        if fill_width > 0:
-            fill_rect = pygame.Rect(bar_left, bar_top, fill_width, bar_height)
-            pygame.draw.rect(self.screen, self.config.LEVEL_BAR_FILL, fill_rect, border_radius=8)
-
-        # テキスト（バー内に%）
-        percent_text = f"{progress * 100:5.1f}%"
-        percent_surface = self.right_sublabel_font.render(percent_text, True, self.config.TEXT_COLOR)
-        percent_rect = percent_surface.get_rect(center=bar_rect.center)
-        self.screen.blit(percent_surface, percent_rect)
-
-        # 下に Lv と Next を表示
-        level_text = f"Lv {self.level}"
-        next_text = f"Next: {self.next_level_xp:,} XP"
-        level_surface = self.right_sublabel_font.render(level_text, True, self.config.TEXT_COLOR)
-        next_surface = self.right_sublabel_font.render(next_text, True, self.config.TEXT_COLOR)
-
-        # 配置: 左にLv、右にNext、下にRemain
-        level_rect = level_surface.get_rect()
-        next_rect = next_surface.get_rect()
-        level_rect.left = bar_left
-        level_rect.top = bar_rect.bottom + 2
-        next_rect.right = bar_left + bar_width
-        next_rect.top = bar_rect.bottom + 2
-
-        self.screen.blit(level_surface, level_rect)
-        self.screen.blit(next_surface, next_rect)
+        
+        pygame.display.flip()
 
     def _calc_costs(self):
         """UI表示用のコスト計算（購入ロジックなし）"""
