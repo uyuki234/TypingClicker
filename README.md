@@ -42,7 +42,7 @@ source venv/bin/activate  # macOS/Linuxの場合
 # または Windows: venv\Scripts\activate
 
 # ゲームの実行
-python main.py
+python3 main.py
 ```
 
 ### 主な機能
