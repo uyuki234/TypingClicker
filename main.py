@@ -206,11 +206,18 @@ class Game:
                             break
             
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    self.state.typing_power = 0
-                    self.counter.reset()
-                elif event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE:
                     self.running = False
+                else:
+                    # タイピング処理
+                    if event.unicode:  # 入力可能な文字の場合
+                        if self.typing_display.check_input(event.unicode):
+                            # 正しい入力の場合、ポイント+1
+                            self._add_typing_power(1)
+                            
+                            # タイピング完了チェック
+                            if self.typing_display.is_complete():
+                                self._set_random_sentence()
     
     def render(self):
         """画面に描画"""

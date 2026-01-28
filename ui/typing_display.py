@@ -21,6 +21,7 @@ class TypingDisplay:
         self.offset_x = offset_x
         self.offset_y = offset_y
         self.text = ""
+        self.current_position = 0  # 現在の入力位置
     
     def set_text(self, text):
         """表示するテキストを設定
@@ -29,14 +30,69 @@ class TypingDisplay:
             text (str): 表示する英文
         """
         self.text = text
+        self.current_position = 0
+    
+    def check_input(self, char):
+        """入力文字をチェック
+        
+        Args:
+            char (str): 入力された文字
+            
+        Returns:
+            bool: 正しい入力の場合True
+        """
+        # 全て入力済みの場合
+        if self.current_position >= len(self.text):
+            return False
+        
+        # 期待される文字（大文字小文字を区別する）
+        expected_char = self.text[self.current_position]
+        input_char = char
+        
+        # 正しい入力の場合
+        if expected_char == input_char:
+            self.current_position += 1
+            return True
+        
+        return False
+    
+    def is_complete(self):
+        """タイピングが完了したかチェック
+        
+        Returns:
+            bool: 完了している場合True
+        """
+        # 最後まで到達しているかチェック
+        return self.current_position >= len(self.text)
     
     def draw(self, surface, color):
-        """テキストを描画"""
-        # テキストをレンダリング
-        text_surface = self.font.render(self.text, True, color)
+        """テキストを描画（入力済みの文字は灰色、スペースは_で表示）"""
+        if not self.text:
+            return
         
-        # 水平・垂直センタリング
-        text_x = self.offset_x + (self.container_width - text_surface.get_width()) // 2
-        text_y = self.offset_y + (self.container_height - text_surface.get_height()) // 2
+        # スペースを_に置換して表示
+        display_text = self.text.replace(' ', '_')
         
-        surface.blit(text_surface, (text_x, text_y))
+        # 入力済み部分と未入力部分に分ける
+        typed_part = display_text[:self.current_position]
+        remaining_part = display_text[self.current_position:]
+        
+        # 灰色（入力済み）
+        gray_color = (128, 128, 128)
+        
+        # 入力済み部分をレンダリング
+        typed_surface = self.font.render(typed_part, True, gray_color)
+        # 未入力部分をレンダリング
+        remaining_surface = self.font.render(remaining_part, True, color)
+        
+        # 全体の幅を計算
+        total_width = typed_surface.get_width() + remaining_surface.get_width()
+        
+        # 中央揃えの開始位置
+        start_x = self.offset_x + (self.container_width - total_width) // 2
+        text_y = self.offset_y + (self.container_height - typed_surface.get_height()) // 2
+        
+        # 入力済み部分を描画
+        surface.blit(typed_surface, (start_x, text_y))
+        # 未入力部分を描画
+        surface.blit(remaining_surface, (start_x + typed_surface.get_width(), text_y))
