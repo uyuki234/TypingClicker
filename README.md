@@ -22,16 +22,24 @@
 - Python 3.10 以上
 - pygame ライブラリ
 
-### インストール
+### 環境構築
 
 ```bash
-# pygameのインストール
-pip install pygame
+# 仮想環境の作成（オプション）
+python3 -m venv venv
+source venv/bin/activate  # macOSの場合
+
+# パッケージのインストール
+pip install -r requirements.txt
+
+# ゲームの実行
+python3 main.py
 ```
 
 ### 起動
 
 ```bash
+source ./.venv/bin/activate
 python3 main.py
 ```
 
