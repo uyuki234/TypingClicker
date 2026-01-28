@@ -93,23 +93,7 @@ class UIRenderer:
             img_rect.centery = rect.centery
             surface.blit(img, img_rect)
 
-            # ラベルを画像の右隣・上部に配置（枠内に収まるよう調整）
-            label_surface = self.right_label_font.render(labels[i], True, self.config.TEXT_COLOR)
-            label_rect = label_surface.get_rect()
-            desired_left = label_base_left
-            max_left = rect.right - text_padding - label_rect.width
-            label_rect.left = min(desired_left, max_left)
-            label_rect.top = rect.top + text_padding
-            surface.blit(label_surface, label_rect)
-
-            # サブラベル（効果概要）をラベルの下に表示
-            sub_surface = self.right_sublabel_font.render(sublabels[i], True, self.config.TEXT_COLOR)
-            sub_rect = sub_surface.get_rect()
-            sub_rect.left = label_rect.left
-            sub_rect.top = label_rect.bottom + 6
-            surface.blit(sub_surface, sub_rect)
-
-            # 下部ボタンとその上のレベル表示
+            # 下部ボタンの左端を先に計算
             btn_left = label_base_left
             btn_top = rect.bottom - button_padding_y - button_height
             btn_width = min(button_width, rect.right - button_padding_x - btn_left)
@@ -119,6 +103,28 @@ class UIRenderer:
                 btn_width,
                 button_height,
             )
+
+            # メインラベル（Typing Skill等）を枠の上側に配置
+            label_surface = self.right_label_font.render(labels[i], True, self.config.TEXT_COLOR)
+            label_rect = label_surface.get_rect()
+            label_rect.left = btn_left
+            label_rect.top = rect.top + 8
+            surface.blit(label_surface, label_rect)
+
+            # サブラベル（効果概要）をメインラベルの下に配置（左端を揃える）
+            sub_surface = self.right_sublabel_font.render(sublabels[i], True, self.config.TEXT_COLOR)
+            sub_rect = sub_surface.get_rect()
+            sub_rect.left = btn_left
+            sub_rect.top = label_rect.bottom + 2
+            surface.blit(sub_surface, sub_rect)
+
+            # レベルラベルをボタンの上側中央に配置
+            level_surface = self.label_font.render(level_labels[i], True, self.config.TEXT_COLOR)
+            level_rect = level_surface.get_rect()
+            level_rect.centerx = btn_rect.centerx
+            level_rect.bottom = btn_rect.top - 4
+            surface.blit(level_surface, level_rect)
+
             pygame.draw.rect(
                 surface,
                 self.config.PANEL_BTN,
@@ -132,13 +138,6 @@ class UIRenderer:
                 width=2,
                 border_radius=10,
             )
-
-            # ボタン上のラベル（中央揃え）
-            level_surface = self.label_font.render(level_labels[i], True, self.config.TEXT_COLOR)
-            level_rect = level_surface.get_rect()
-            level_rect.centerx = btn_rect.centerx
-            level_rect.bottom = btn_rect.top - 4
-            surface.blit(level_surface, level_rect)
 
             # ボタン中央にコスト表示
             cost_text = f"Cost: {costs[i]:,}"

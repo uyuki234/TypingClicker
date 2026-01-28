@@ -34,10 +34,10 @@ class Game:
         )
         
         # フォント初期化
-        base_size = int(min(self.left_width, self.config.HEIGHT) * 0.12)
-        label_size = int(base_size * 0.6)  # 左側ラベル（Typing Power）用
-        right_label_size = int(base_size * 0.65)  # 右側メインラベル用
-        right_sublabel_size = int(base_size * 0.4)  # 右側サブラベル用
+        base_size = int(min(self.left_width, self.config.HEIGHT) * 0.10)
+        label_size = int(base_size * 0.45)  # 左側ラベル（Typing Power）用、Levelラベル用
+        right_label_size = int(base_size * 0.45)  # 右側メインラベル用（Typing Skill等）
+        right_sublabel_size = int(base_size * 0.35)  # 右側サブラベル用
         self.counter_font = pygame.font.Font(font_path, base_size)
         self.label_font = pygame.font.Font(font_path, label_size)
         self.right_label_font = pygame.font.Font(font_path, right_label_size)
@@ -63,11 +63,11 @@ class Game:
         # タイピング表示の初期化
         # ボタンは y = HEIGHT * 0.48 の中央、進捗バーは下から約 70px
         # この間に英文を配置
-        typing_display_font_size = int(base_size * 0.55)
+        typing_display_font_size = int(base_size * 0.5)
         typing_display_font = pygame.font.Font(font_path, typing_display_font_size)
         
         # 日本語フォント（Noto Sans JPを使用）
-        japanese_font_size = int(base_size * 0.4)
+        japanese_font_size = int(base_size * 0.35)
         japanese_font = pygame.font.Font(font_path, japanese_font_size)
         
         button_center_y = int(self.config.HEIGHT * 0.48)
