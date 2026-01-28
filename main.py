@@ -82,7 +82,7 @@ class Game:
         """ボタンを初期化"""
         # ボタン画像の読み込み
         button_image_path = os.path.join(
-            os.path.dirname(__file__), "assets", "computer_keyboard_black.png"
+            os.path.dirname(__file__), "assets", "keyboard.png"
         )
         original_image = pygame.image.load(button_image_path)
         
@@ -106,8 +106,8 @@ class Game:
         asset_dir = os.path.join(os.path.dirname(__file__), "assets")
         filenames = [
             "keyboard_typing.png",
-            "ai_computer_sousa_robot.png",
-            "computer_cpu.png",
+            "robot.png",
+            "cpu.png",
         ]
 
         margin = 24
