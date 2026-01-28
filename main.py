@@ -28,15 +28,20 @@ class Game:
         self.right_width = self.config.RIGHT_WIDTH
         self.left_width = self.config.WIDTH - self.right_width
         
+        # フォントファイルのパス
+        font_path = os.path.join(
+            os.path.dirname(__file__), "assets", "NotoSansJP-Black.ttf"
+        )
+        
         # フォント初期化
         base_size = int(min(self.left_width, self.config.HEIGHT) * 0.12)
         label_size = int(base_size * 0.6)  # 左側ラベル（Typing Power）用
         right_label_size = int(base_size * 0.65)  # 右側メインラベル用
         right_sublabel_size = int(base_size * 0.4)  # 右側サブラベル用
-        self.counter_font = pygame.font.SysFont(None, base_size)
-        self.label_font = pygame.font.SysFont(None, label_size)
-        self.right_label_font = pygame.font.SysFont(None, right_label_size)
-        self.right_sublabel_font = pygame.font.SysFont(None, right_sublabel_size)
+        self.counter_font = pygame.font.Font(font_path, base_size)
+        self.label_font = pygame.font.Font(font_path, label_size)
+        self.right_label_font = pygame.font.Font(font_path, right_label_size)
+        self.right_sublabel_font = pygame.font.Font(font_path, right_sublabel_size)
 
         # ゲーム状態の初期化
         self.state = GameState()
@@ -59,7 +64,11 @@ class Game:
         # ボタンは y = HEIGHT * 0.48 の中央、進捗バーは下から約 70px
         # この間に英文を配置
         typing_display_font_size = int(base_size * 0.55)
-        typing_display_font = pygame.font.SysFont(None, typing_display_font_size)
+        typing_display_font = pygame.font.Font(font_path, typing_display_font_size)
+        
+        # 日本語フォント（Noto Sans JPを使用）
+        japanese_font_size = int(base_size * 0.4)
+        japanese_font = pygame.font.Font(font_path, japanese_font_size)
         
         button_center_y = int(self.config.HEIGHT * 0.48)
         button_size = int(self.config.HEIGHT * self.config.BTN_IMAGE_RATIO)
@@ -71,6 +80,7 @@ class Game:
         
         self.typing_display = TypingDisplay(
             typing_display_font,
+            japanese_font,
             self.left_width,
             typing_display_height,
             offset_x=0,
@@ -186,7 +196,8 @@ class Game:
         sentence = random.choice(sentences)
         # sentence = [id, english, japanese]
         english = sentence[1]
-        self.typing_display.set_text(english)
+        japanese = sentence[2]
+        self.typing_display.set_sentence(english, japanese)
     
     def handle_events(self):
         """イベント処理"""
