@@ -1,3 +1,5 @@
+# ’と'の違いに注意（１敗）
+
 sentences = [
     [1, "Please submit the report by Friday.", "金曜日までに報告書を提出してください。"],
     [2, "The meeting starts at nine sharp.", "会議は9時ちょうどに始まります。"],
@@ -15,7 +17,7 @@ sentences = [
     [14, "We apologize for any inconvenience caused.", "ご不便をおかけし申し訳ありません。"],
     [15, "I will follow up next week.", "来週フォローします。"],
     [16, "The printer is out of paper.", "プリンターの用紙が切れています。"],
-    [17, "Let’s schedule a call for tomorrow.", "明日の電話を予定しましょう。"],
+    [17, "Let's schedule a call for tomorrow.", "明日の電話を予定しましょう。"],
     [18, "Please confirm your availability by noon.", "正午までに都合を確認してください。"],
     [19, "Our office will relocate in August.", "当社オフィスは8月に移転します。"],
     [20, "She is responsible for client relations.", "彼女は顧客対応を担当しています。"],
